@@ -8,13 +8,14 @@ apt-get install -y nginx
 # Get the hostname of the server
 hostname=$(hostname)
 
-# Add the custom header to the default Nginx config
+# Set custom header in nginx config
 config_file="/etc/nginx/sites-available/default"
 
-# Add the header line only if it doesn't already exist
-if ! grep -q "add_header X-Served-By" "$config_file"; then
-    sed -i "/server_name _;/a \\tadd_header X-Served-By \$hostname;" "$config_file"
+# Use envsubst to substitute $hostname directly into the config
+# Make sure the header is inside the `location /` block
+if ! grep -q "X-Served-By" "$config_file"; then
+    sed -i "/location \/ {/a \\\tadd_header X-Served-By $hostname;" "$config_file"
 fi
 
-# Reload nginx to apply changes
+# Restart nginx to apply changes
 systemctl restart nginx
